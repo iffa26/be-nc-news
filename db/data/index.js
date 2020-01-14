@@ -1,11 +1,10 @@
 testData = require("../data/test-data/index.js");
 devData = require("../data/development-data/index");
 
-const env = process.env.NODE_MODULES || "dev";
-
+const env = process.env.NODE_ENV || "development";
 allData = {
   test: testData,
-  dev: devData
+  development: devData
 };
 
 module.exports = allData[env];

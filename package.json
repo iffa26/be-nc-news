@@ -5,7 +5,13 @@
   "main": "index.js",
   "scripts": {
     "setup-dbs": "psql -f ./db/setup.sql",
-    "seed": "knex seed:run",
+    "show-tables-dev": "psql -f ./db/show-tables.sql > ./db/show-tables-dev.txt",
+    "show-tables-test": "psql -f ./db/show-tables-test.sql > ./db/show-tables-test.txt",
+    "migrate-make": "knex migrate:make",
+    "migrate-latest": "knex migrate:latest",
+    "migrate-rollback": "knex migrate:rollback",
+    "seed-dev": "npm run setup-dbs && NODE_ENV=development knex seed:run",
+    "seed-test": "npm run setup-dbs && NODE_ENV=test knex seed:run",
     "test-utils": "mocha spec/utils.spec.js",
     "test": "mocha spec/app.spec.js"
   },
