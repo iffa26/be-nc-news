@@ -226,4 +226,91 @@ describe("/api", () => {
         });
     });
   });
+  describe.only("GET /articles/:article_id/comments", () => {
+    it("GET:200 responds with an array of comments for the given article_id", () => {
+      return request(app)
+        .get("/api/articles/5/comments")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.an("array");
+          expect(response.body.comments[0]).to.have.keys(
+            "comment_id",
+            "votes",
+            "created_at",
+            "author",
+            "body"
+          );
+        });
+    });
+    it("** GET:200 responds with defualt sort criteria (by created_at in descending order)", () => {
+      return request(app)
+        .get("/api/articles/1/comments")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.sortedBy("created_at", {
+            descending: true
+          });
+        });
+    });
+    it("** GET:200 responds with comments sorted by votes", () => {
+      return request(app)
+        .get("/api/articles/9/comments?sort_by=votes")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.sortedBy("votes", {
+            descending: true
+          });
+        });
+    });
+    it("** GET:200 responds with comments sorted by author", () => {
+      return request(app)
+        .get("/api/articles/9/comments?sort_by=author")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.sortedBy("author", {
+            descending: true
+          });
+        });
+    });
+    it("** GET:200 responds with comments sorted by body", () => {
+      return request(app)
+        .get("/api/articles/9/comments?sort_by=body")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.sortedBy("body", {
+            descending: true
+          });
+        });
+    });
+    it("** GET:200 responds with comments sorted by comment_id", () => {
+      return request(app)
+        .get("/api/articles/9/comments?sort_by=comment_id")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.sortedBy("comment_id", {
+            descending: true
+          });
+        });
+    });
+    it("** GET:200 responds with comments sorted in ascending order", () => {
+      return request(app)
+        .get("/api/articles/9/comments?order=asc")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.sortedBy("created_at", {
+            descending: false
+          });
+        });
+    });
+    it("** GET:200 responds with comments sorted by votes in ascending order", () => {
+      return request(app)
+        .get("/api/articles/9/comments?sort_by=votes&order=asc")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.sortedBy("votes", {
+            descending: false
+          });
+        });
+    });
+  });
 });

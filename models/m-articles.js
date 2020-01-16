@@ -71,3 +71,21 @@ exports.insertCommentToArticle = ({ article_id }, { username, body }) => {
       return newComment;
     });
 };
+
+exports.selectCommentsByArticleId = (
+  { article_id },
+  { sort_by = "created_at", order = "desc" }
+) => {
+  //console.log("in the selectCommentsOnArticle model function");
+  return connection("comments")
+    .where("article_id", article_id)
+    .orderBy(sort_by, order)
+    .then(comments => {
+      const formattedComments = [];
+      comments.forEach(comment => {
+        delete comment.article_id;
+        formattedComments.push(comment);
+      });
+      return formattedComments;
+    });
+};

@@ -2,7 +2,8 @@ const {
   sendArticles,
   selectArticleById,
   ammendArticleById,
-  insertCommentToArticle
+  insertCommentToArticle,
+  selectCommentsByArticleId
 } = require("../models/m-articles.js");
 
 exports.sendArticles = (req, res, next) => {
@@ -35,7 +36,7 @@ exports.sendUpdatedArticle = (req, res, next) => {
     });
 };
 
-exports.sendCommentOnArticle = (req, res, next) => {
+exports.updateCommentOnArticle = (req, res, next) => {
   //console.log("in the sendCommentOnArticle controller function");
   //console.log("req.params:", req.params, "req.body:", req.body);
 
@@ -45,6 +46,23 @@ exports.sendCommentOnArticle = (req, res, next) => {
   insertCommentToArticle(req.params, req.body)
     .then(comment => {
       res.status(201).send({ comment });
+    })
+    .catch(function(err) {
+      next(err);
+    });
+};
+
+exports.sendCommentsByArticleId = (req, res, next) => {
+  //console.log("in the sendCommentsOnArticle controller");
+  console.log("req.params:", req.params, "req.query:", req.query);
+
+  // req.params: { article_id: '5' }
+  // req.body: {}
+  // req.query: {sort_by: "votes", order: "asc"}
+
+  selectCommentsByArticleId(req.params, req.query)
+    .then(comments => {
+      res.status(200).send({ comments });
     })
     .catch(function(err) {
       next(err);
