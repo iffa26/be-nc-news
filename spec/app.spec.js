@@ -11,7 +11,7 @@ const connection = require("../db/connection.js");
 describe("/api", () => {
   beforeEach(() => connection.seed.run());
   after(() => connection.destroy());
-  describe("/topics", () => {
+  describe("GET /topics", () => {
     it("GET:200 responds with a topics array of objects, which each have a slug and description", () => {
       return request(app)
         .get("/api/topics")
@@ -22,7 +22,7 @@ describe("/api", () => {
         });
     });
   });
-  describe("/users/:username", () => {
+  describe("GET /users/:username", () => {
     it("GET:200 responds with an user object which should have properties username, avatar_url, name", () => {
       return request(app)
         .get("/api/users/lurker")
@@ -45,7 +45,7 @@ describe("/api", () => {
         });
     });
   });
-  describe("/api/articles/:article_id", () => {
+  describe("GET /articles/:article_id", () => {
     it("GET:200 responds with an article object with article keys including a comment_count key", () => {
       return request(app)
         .get("/api/articles/3")
@@ -70,7 +70,7 @@ describe("/api", () => {
         .get("/api/articles/notAnArticleID")
         .expect(400)
         .then(response => {
-          expect(response.body.msg).to.equal("Bad Request: Invalid article_id");
+          expect(response.body.msg).to.equal("Bad Request: Invalid data type");
         });
     });
     it("GET:404 Not Found on article_id which doesnt exist", () => {
@@ -84,7 +84,7 @@ describe("/api", () => {
         });
     });
   });
-  describe("/api/articles/:article_id", () => {
+  describe("PATCH /articles/:article_id", () => {
     it("PATCH:200 responds with the updated article object in an array", () => {
       return request(app)
         .patch("/api/articles/3")
@@ -95,6 +95,135 @@ describe("/api", () => {
           expect(response.body.article[0].votes).to.equal(10);
         });
     });
-    // patch error handling
+    it("PATCH:404 Not Found on article_id which does not exist", () => {
+      return request(app)
+        .patch("/api/articles/10000")
+        .send({ inc_votes: 10 })
+        .expect(404)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Not Found: article_id does not exist"
+          );
+        });
+    });
+    it("PATCH:400 Bad Request on invalid article_id", () => {
+      return request(app)
+        .patch("/api/articles/notAnArticleID")
+        .send({ inc_votes: 10 })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Invalid data type");
+        });
+    });
+    it("PATCH:400 Bad Request on missing inc_votes request field", () => {
+      return request(app)
+        .patch("/api/articles/2")
+        .send({})
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Bad Request: Missing request field"
+          );
+        });
+    });
+    it("PATCH:400 Bad Request on mispelt inc_votes request field", () => {
+      return request(app)
+        .patch("/api/articles/2")
+        .send({ incVotes: 2 })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Bad Request: Missing request field"
+          );
+        });
+    });
+    it("PATCH:400 Bad Request on invalid request type", () => {
+      return request(app)
+        .patch("/api/articles/3")
+        .send({ inc_votes: "invalidType" })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Invalid data type");
+        });
+    });
+  });
+  describe("POST /articles/:article_id/comments", () => {
+    it("POST:201 Created reponds with the posted comment", () => {
+      return request(app)
+        .post("/api/articles/1/comments")
+        .send({ username: "iffa26", body: "this is so fun" })
+        .expect(201)
+        .then(response => {
+          expect(response.body.comment).to.be.an("array");
+          expect(response.body.comment.length).to.equal(1);
+          expect(response.body.comment[0]).to.have.keys(
+            "comment_id",
+            "author",
+            "article_id",
+            "votes",
+            "created_at",
+            "body"
+          );
+          expect(response.body.comment[0].body).to.equal("this is so fun");
+          expect(response.body.comment[0].article_id).to.equal(1);
+        });
+    });
+    it("POST:400 Bad Request when username is not passed in request", () => {
+      return request(app)
+        .post("/api/articles/4/comments")
+        .send({ body: "omg wow" })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Incomplete body");
+        });
+    });
+    it("POST:400 Bad Request when body is not passed in request", () => {
+      return request(app)
+        .post("/api/articles/4/comments")
+        .send({ username: "iffa" })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Incomplete body");
+        });
+    });
+    it("POST:400 Bad Request when body is empty in request", () => {
+      return request(app)
+        .post("/api/articles/7/comments")
+        .send({ username: "iffa", body: "" })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Incomplete request");
+        });
+    });
+    it("POST:400 Bad Request when username is empty in request", () => {
+      return request(app)
+        .post("/api/articles/7/comments")
+        .send({ username: "", body: "lol" })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Incomplete request");
+        });
+    });
+
+    it("POST:404 Not Found when article_id does not exist", () => {
+      return request(app)
+        .post("/api/articles/300000/comments")
+        .send({ username: "iffa", body: "amazing" })
+        .expect(404)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Not Found: Resource does not exist"
+          );
+        });
+    });
+    it("POST:400 Bad Request when article_id is invalid data type", () => {
+      return request(app)
+        .post("/api/articles/not_an_id/comments")
+        .send({ username: "iffa", body: "amazing" })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Invalid data type");
+        });
+    });
   });
 });

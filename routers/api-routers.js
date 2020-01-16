@@ -3,7 +3,8 @@ const apiRouter = require("express").Router();
 const {
   sendArticles,
   sendArticleById,
-  sendUpdatedArticle
+  sendUpdatedArticle,
+  sendCommentOnArticle
 } = require("../controllers/c-articles.js");
 const {} = require("../controllers/c-comments.js");
 const { sendTopics } = require("../controllers/c-topics.js");
@@ -19,5 +20,7 @@ apiRouter
   .route("/articles/:article_id")
   .get(sendArticleById)
   .patch(sendUpdatedArticle);
+
+apiRouter.route("/articles/:article_id/comments").post(sendCommentOnArticle);
 
 module.exports = apiRouter;
