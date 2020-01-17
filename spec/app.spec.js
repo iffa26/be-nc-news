@@ -356,4 +356,84 @@ describe("/api", () => {
         });
     });
   });
+  describe("GET /api/articles", () => {
+    it("GET:200 responds with an array of article objects", () => {
+      return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then(response => {
+          expect(response.body.articles).to.be.an("array");
+          expect(response.body.articles[0]).to.have.keys(
+            "author",
+            "title",
+            "article_id",
+            "topic",
+            "created_at",
+            "votes",
+            "comment_count"
+          );
+        });
+    });
+    it("GET:200 responds with an array of article objects, sorted in default order (by created_at, desc)", () => {
+      return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then(response => {
+          expect(response.body.articles).to.be.sortedBy("created_at", {
+            descending: true
+          });
+        });
+    });
+    it("GET:200 responds with an array of article objects, filtered by author", () => {
+      return request(app)
+        .get("/api/articles?author=rogersop")
+        .expect(200)
+        .then(response => {
+          const output = response.body.articles.every(article => {
+            return article.author === "rogersop";
+          });
+          expect(output).to.be.true;
+        });
+    });
+    it("GET:200 responds with an array of article objects, filtered by topic", () => {
+      return request(app)
+        .get("/api/articles?topic=cats")
+        .expect(200)
+        .then(response => {
+          const output = response.body.articles.every(article => {
+            return article.topic === "cats";
+          });
+          expect(output).to.be.true;
+        });
+    });
+    it("GET:200 responds with an array of article objects, filtered by author and topic", () => {
+      return request(app)
+        .get("/api/articles?author=icellusedkars&topic=mitch")
+        .expect(200)
+        .then(response => {
+          const output = response.body.articles.every(article => {
+            return (
+              article.topic === "mitch" && article.author === "icellusedkars"
+            );
+          });
+          expect(output).to.be.true;
+        });
+    });
+    it("GET:400 when sort_by column is invalid", () => {
+      return request(app)
+        .get("/api/articles/?sort_by=invalidColumn")
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Invalid column name");
+        });
+    });
+    it("GET:400 when order option is invalid", () => {
+      return request(app)
+        .get("/api/articles/?order=invalidOption")
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Invalid order option");
+        });
+    });
+  });
 });

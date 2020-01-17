@@ -15,8 +15,6 @@ apiRouter.route("/topics").get(sendTopics);
 
 apiRouter.route("/users/:username").get(sendUserByUsername);
 
-//apiRouter.route("/articles").get(sendArticles);
-
 apiRouter
   .route("/articles/:article_id")
   .get(sendArticleById)
@@ -26,6 +24,8 @@ apiRouter
   .route("/articles/:article_id/comments")
   .post(updateCommentOnArticle)
   .get(sendCommentsByArticleId);
+
+apiRouter.route("/articles").get(sendArticles);
 
 // wildcard route??
 

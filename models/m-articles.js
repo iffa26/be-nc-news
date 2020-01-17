@@ -1,14 +1,11 @@
 const connection = require("../db/connection.js");
 
-exports.sendArticles = () => {};
-
 exports.checkIfArticleExistsById = ({ article_id }) => {
   //console.log("in the selectArticleById model function");
   return connection("articles")
     .where("article_id", article_id)
     .then(response => {
       if (response.length === 0) return false;
-
       //console.log("checkIfArticleExistsById returns atricle_id: ", article_id);
       return true;
     });
@@ -134,5 +131,57 @@ exports.selectCommentsByArticleId = (
           msg: "Not Found: article_id does not exist"
         });
       }
+    });
+};
+
+exports.selectArticles = ({
+  sort_by = "created_at",
+  order = "desc",
+  author,
+  topic
+}) => {
+  const valid_sort_by = [
+    "article_id",
+    "title",
+    "votes",
+    "topic",
+    "created_at",
+    "author",
+    "comment_count"
+  ];
+  const valid_order = ["desc", "asc"];
+
+  if (!valid_sort_by.includes(sort_by)) {
+    return Promise.reject({ status: 400, msg: "Invalid column name" });
+  }
+
+  if (!valid_order.includes(order)) {
+    return Promise.reject({ status: 400, msg: "Invalid order option" });
+  }
+
+  return connection("articles")
+    .select("articles.*")
+    .from("articles") // select all cols from articles
+    .count({ comment_count: "comment_id" })
+    .leftJoin("comments", "articles.article_id", "comments.article_id")
+    .modify(function(queryChain) {
+      if (author) queryChain.where("articles.author", author);
+      if (topic) queryChain.where("articles.topic", topic);
+    })
+    .groupBy("articles.article_id")
+    .orderBy(sort_by, order)
+    .then(response => {
+      if (response.length === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: "Not Found: article_id does not exist"
+        });
+      }
+      const formattedResponse = [];
+      response.forEach(article => {
+        delete article.body;
+        formattedResponse.push(article);
+      });
+      return formattedResponse;
     });
 };

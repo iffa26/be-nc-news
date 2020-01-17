@@ -1,15 +1,10 @@
 const {
-  sendArticles,
+  selectArticles,
   selectArticleById,
   ammendArticleById,
   insertCommentToArticle,
-  selectCommentsByArticleId,
-  checkIfArticleExistsById
+  selectCommentsByArticleId
 } = require("../models/m-articles.js");
-
-exports.sendArticles = (req, res, next) => {
-  console.log("inside the sendArticles controller");
-};
 
 exports.sendArticleById = (req, res, next) => {
   //console.log("in the sendArticleById controller function");
@@ -65,6 +60,19 @@ exports.sendCommentsByArticleId = (req, res, next) => {
     .then(comments => {
       //console.log("comments in controller", comments);
       res.status(200).send({ comments });
+    })
+    .catch(function(err) {
+      next(err);
+    });
+};
+
+exports.sendArticles = (req, res, next) => {
+  // console.log("inside the sendArticles controller");
+  // console.log("req.params:", req.params, "req.query:", req.query);
+
+  selectArticles(req.query)
+    .then(articles => {
+      res.status(200).send({ articles });
     })
     .catch(function(err) {
       next(err);
