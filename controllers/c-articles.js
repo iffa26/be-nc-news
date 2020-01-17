@@ -41,6 +41,7 @@ exports.updateCommentOnArticle = (req, res, next) => {
 
   insertCommentToArticle(req.params, req.body)
     .then(comment => {
+      //console.log("POST comment", comment);
       res.status(201).send({ comment });
     })
     .catch(function(err) {
@@ -58,7 +59,7 @@ exports.sendCommentsByArticleId = (req, res, next) => {
 
   selectCommentsByArticleId(req.params, req.query)
     .then(comments => {
-      //console.log("comments in controller", comments);
+      // console.log("comments in controller", comments);
       res.status(200).send({ comments });
     })
     .catch(function(err) {

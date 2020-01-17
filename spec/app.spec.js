@@ -28,8 +28,8 @@ describe("/api", () => {
         .get("/api/users/lurker")
         .expect(200)
         .then(response => {
-          expect(response.body.user).to.be.an("array");
-          expect(response.body.user[0]).to.have.keys(
+          expect(response.body.user).to.be.an("object");
+          expect(response.body.user).to.have.keys(
             "username",
             "avatar_url",
             "name"
@@ -51,9 +51,8 @@ describe("/api", () => {
         .get("/api/articles/3")
         .expect(200)
         .then(response => {
-          expect(response.body.article).to.be.an("array");
-          expect(response.body.article.length).to.equal(1);
-          expect(response.body.article[0]).to.contain.keys(
+          expect(response.body.article).to.be.an("object");
+          expect(response.body.article).to.contain.keys(
             "author",
             "title",
             "article_id",
@@ -91,8 +90,8 @@ describe("/api", () => {
         .send({ inc_votes: 10 })
         .expect(200)
         .then(response => {
-          expect(response.body.article).to.be.an("array");
-          expect(response.body.article[0].votes).to.equal(10);
+          expect(response.body.article).to.be.an("object");
+          expect(response.body.article.votes).to.equal(10);
         });
     });
     it("PATCH:404 Not Found on article_id which does not exist", () => {
@@ -151,12 +150,11 @@ describe("/api", () => {
     it("POST:201 Created reponds with the posted comment", () => {
       return request(app)
         .post("/api/articles/1/comments")
-        .send({ username: "iffa26", body: "this is so fun" })
+        .send({ username: "rogersop", body: "this is so fun" })
         .expect(201)
         .then(response => {
-          expect(response.body.comment).to.be.an("array");
-          expect(response.body.comment.length).to.equal(1);
-          expect(response.body.comment[0]).to.have.keys(
+          expect(response.body.comment).to.be.an("object");
+          expect(response.body.comment).to.have.keys(
             "comment_id",
             "author",
             "article_id",
@@ -164,8 +162,8 @@ describe("/api", () => {
             "created_at",
             "body"
           );
-          expect(response.body.comment[0].body).to.equal("this is so fun");
-          expect(response.body.comment[0].article_id).to.equal(1);
+          expect(response.body.comment.body).to.equal("this is so fun");
+          expect(response.body.comment.article_id).to.equal(1);
         });
     });
     it("POST:400 Bad Request when username is not passed in request", () => {
@@ -180,7 +178,7 @@ describe("/api", () => {
     it("POST:400 Bad Request when body is not passed in request", () => {
       return request(app)
         .post("/api/articles/4/comments")
-        .send({ username: "iffa" })
+        .send({ username: "rogersop" })
         .expect(400)
         .then(response => {
           expect(response.body.msg).to.equal("Bad Request: Incomplete body");
@@ -189,7 +187,7 @@ describe("/api", () => {
     it("POST:400 Bad Request when body is empty in request", () => {
       return request(app)
         .post("/api/articles/7/comments")
-        .send({ username: "iffa", body: "" })
+        .send({ username: "rogersop", body: "" })
         .expect(400)
         .then(response => {
           expect(response.body.msg).to.equal("Bad Request: Incomplete request");
@@ -202,6 +200,17 @@ describe("/api", () => {
         .expect(400)
         .then(response => {
           expect(response.body.msg).to.equal("Bad Request: Incomplete request");
+        });
+    });
+    it("POST:404 Not Found when username does not exist (invalid)", () => {
+      return request(app)
+        .post("/api/articles/7/comments")
+        .send({ username: "iffa", body: "lol" })
+        .expect(404)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Not Found: Resource does not exist"
+          );
         });
     });
 
@@ -433,6 +442,34 @@ describe("/api", () => {
         .expect(400)
         .then(response => {
           expect(response.body.msg).to.equal("Invalid order option");
+        });
+    });
+    it("GET:200 reponds with an empty array when author is a valid user but doesnt have any articles", () => {
+      return request(app)
+        .get("/api/articles/?author=lurker&topic=paper")
+        .expect(200)
+        .then(response => {
+          expect(response.body.articles).to.be.an("array");
+        });
+    });
+    it("POST:404 Not Found when username does not exist (invalid)", () => {
+      return request(app)
+        .get("/api/articles/?author=iffa")
+        .expect(404)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Not Found: Resource does not exist"
+          );
+        });
+    });
+  });
+  describe("405 errors on all endpoints", () => {
+    it("responds with a 405 on methods which aren't allowed", () => {
+      return request(app)
+        .patch("/api/articles/")
+        .expect(405)
+        .then(response => {
+          expect(response.body.msg).to.equal("Method not allowed");
         });
     });
   });

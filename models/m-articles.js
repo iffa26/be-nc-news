@@ -11,11 +11,34 @@ exports.checkIfArticleExistsById = ({ article_id }) => {
     });
 };
 
+exports.checkIfUsernameExists = ({ author }) => {
+  //console.log("in the selectArticleById model function");
+  //console.log(author);
+  if (!author) return true; // where author undefined
+  return connection("users")
+    .where("username", author)
+    .then(response => {
+      if (response.length === 0) return false;
+      return true;
+    });
+};
+
+exports.checkIfTopicExists = ({ topic }) => {
+  //console.log("in the selectArticleById model function");
+  if (!topic) return true;
+  return connection("topics")
+    .where("slug", topic)
+    .then(response => {
+      if (response.length === 0) return false;
+      return true;
+    });
+};
+
 exports.selectArticleById = ({ article_id }) => {
   //console.log("in the selectArticleById model function");
   return connection("articles")
     .select("articles.*")
-    .from("articles") // select all cols from articles
+    .from("articles")
     .where("articles.article_id", article_id)
     .count({ comment_count: "comment_id" })
     .leftJoin("comments", "articles.article_id", "comments.article_id")
@@ -27,7 +50,7 @@ exports.selectArticleById = ({ article_id }) => {
           msg: "Not Found: article_id does not exist"
         });
       }
-      return response;
+      return response[0];
     });
 };
 
@@ -52,7 +75,7 @@ exports.ammendArticleById = ({ article_id }, { inc_votes }) => {
           msg: "Not Found: article_id does not exist"
         });
       }
-      return response;
+      return response[0];
     });
 };
 
@@ -77,7 +100,7 @@ exports.insertCommentToArticle = ({ article_id }, { username, body }) => {
     .returning("*")
     .then(newComment => {
       //console.log(newComment);
-      return newComment;
+      return newComment[0];
     });
 };
 
@@ -96,12 +119,6 @@ exports.selectCommentsByArticleId = (
     return Promise.reject({ status: 400, msg: "Invalid order option" });
   }
 
-  // console.log(
-  //   "in the selectCommentsOnArticle model function, article_id:",
-  //   article_id,
-  //   sort_by,
-  //   order
-  // );
   return connection("comments")
     .where("article_id", article_id)
     .orderBy(sort_by, order)
@@ -171,17 +188,45 @@ exports.selectArticles = ({
     .groupBy("articles.article_id")
     .orderBy(sort_by, order)
     .then(response => {
-      if (response.length === 0) {
-        return Promise.reject({
-          status: 404,
-          msg: "Not Found: article_id does not exist"
+      const formattedResponse = [];
+      if (response) {
+        response.forEach(article => {
+          delete article.body;
+          formattedResponse.push(article);
         });
       }
-      const formattedResponse = [];
-      response.forEach(article => {
-        delete article.body;
-        formattedResponse.push(article);
+      const checkUserExistsPromise = exports.checkIfUsernameExists({
+        author
       });
-      return formattedResponse;
-    });
+      const checkTopicExistsPromise = exports.checkIfTopicExists({
+        topic
+      });
+
+      return Promise.all([
+        checkUserExistsPromise,
+        checkTopicExistsPromise,
+        formattedResponse
+      ]);
+    })
+    .then(
+      ([
+        checkUserExistsPromise,
+        checkTopicExistsPromise,
+        formattedResponse
+      ]) => {
+        // console.log(
+        //   "final then, user:",
+        //   checkUserExistsPromise,
+        //   ("topic:", checkTopicExistsPromise)
+        // );
+        if (checkUserExistsPromise && checkTopicExistsPromise) {
+          return formattedResponse;
+        } else {
+          return Promise.reject({
+            status: 404,
+            msg: "Not Found: Resource does not exist"
+          });
+        }
+      }
+    );
 };
