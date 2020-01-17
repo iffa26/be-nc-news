@@ -3,7 +3,7 @@ const apiRouter = require("./routers/api-routers.js");
 
 const app = express();
 
-app.use(express.json()); // what does this line do??
+app.use(express.json());
 
 app.use("/api", apiRouter);
 

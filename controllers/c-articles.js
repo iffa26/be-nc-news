@@ -3,7 +3,8 @@ const {
   selectArticleById,
   ammendArticleById,
   insertCommentToArticle,
-  selectCommentsByArticleId
+  selectCommentsByArticleId,
+  checkIfArticleExistsById
 } = require("../models/m-articles.js");
 
 exports.sendArticles = (req, res, next) => {
@@ -54,7 +55,7 @@ exports.updateCommentOnArticle = (req, res, next) => {
 
 exports.sendCommentsByArticleId = (req, res, next) => {
   //console.log("in the sendCommentsOnArticle controller");
-  console.log("req.params:", req.params, "req.query:", req.query);
+  // console.log("req.params:", req.params, "req.query:", req.query);
 
   // req.params: { article_id: '5' }
   // req.body: {}
@@ -62,6 +63,7 @@ exports.sendCommentsByArticleId = (req, res, next) => {
 
   selectCommentsByArticleId(req.params, req.query)
     .then(comments => {
+      //console.log("comments in controller", comments);
       res.status(200).send({ comments });
     })
     .catch(function(err) {

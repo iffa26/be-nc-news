@@ -2,6 +2,18 @@ const connection = require("../db/connection.js");
 
 exports.sendArticles = () => {};
 
+exports.checkIfArticleExistsById = ({ article_id }) => {
+  //console.log("in the selectArticleById model function");
+  return connection("articles")
+    .where("article_id", article_id)
+    .then(response => {
+      if (response.length === 0) return false;
+
+      //console.log("checkIfArticleExistsById returns atricle_id: ", article_id);
+      return true;
+    });
+};
+
 exports.selectArticleById = ({ article_id }) => {
   //console.log("in the selectArticleById model function");
   return connection("articles")
@@ -76,16 +88,51 @@ exports.selectCommentsByArticleId = (
   { article_id },
   { sort_by = "created_at", order = "desc" }
 ) => {
-  //console.log("in the selectCommentsOnArticle model function");
+  const valid_sort_by = ["comment_id", "votes", "created_at", "author", "body"];
+  const valid_order = ["desc", "asc"];
+
+  if (!valid_sort_by.includes(sort_by)) {
+    return Promise.reject({ status: 400, msg: "Invalid column name" });
+  }
+
+  if (!valid_order.includes(order)) {
+    return Promise.reject({ status: 400, msg: "Invalid order option" });
+  }
+
+  // console.log(
+  //   "in the selectCommentsOnArticle model function, article_id:",
+  //   article_id,
+  //   sort_by,
+  //   order
+  // );
   return connection("comments")
     .where("article_id", article_id)
     .orderBy(sort_by, order)
     .then(comments => {
       const formattedComments = [];
-      comments.forEach(comment => {
-        delete comment.article_id;
-        formattedComments.push(comment);
+
+      if (comments) {
+        comments.forEach(comment => {
+          delete comment.article_id;
+          formattedComments.push(comment);
+        });
+        //console.log("comments in model", formattedComments);
+      }
+      const checkArticleIdPromise = exports.checkIfArticleExistsById({
+        article_id
       });
-      return formattedComments;
+
+      return Promise.all([checkArticleIdPromise, formattedComments]);
+    })
+    .then(([checkArticleId, formattedComments]) => {
+      //console.log("model***", checkArticleId, formattedComments);
+      if (checkArticleId) {
+        return formattedComments;
+      } else {
+        return Promise.reject({
+          status: 404,
+          msg: "Not Found: article_id does not exist"
+        });
+      }
     });
 };

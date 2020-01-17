@@ -226,7 +226,7 @@ describe("/api", () => {
         });
     });
   });
-  describe.only("GET /articles/:article_id/comments", () => {
+  describe("GET /articles/:article_id/comments", () => {
     it("GET:200 responds with an array of comments for the given article_id", () => {
       return request(app)
         .get("/api/articles/5/comments")
@@ -242,7 +242,7 @@ describe("/api", () => {
           );
         });
     });
-    it("** GET:200 responds with defualt sort criteria (by created_at in descending order)", () => {
+    it("GET:200 responds with defualt sort criteria (by created_at in descending order)", () => {
       return request(app)
         .get("/api/articles/1/comments")
         .expect(200)
@@ -252,7 +252,7 @@ describe("/api", () => {
           });
         });
     });
-    it("** GET:200 responds with comments sorted by votes", () => {
+    it("GET:200 responds with comments sorted by votes", () => {
       return request(app)
         .get("/api/articles/9/comments?sort_by=votes")
         .expect(200)
@@ -262,7 +262,7 @@ describe("/api", () => {
           });
         });
     });
-    it("** GET:200 responds with comments sorted by author", () => {
+    it("GET:200 responds with comments sorted by author", () => {
       return request(app)
         .get("/api/articles/9/comments?sort_by=author")
         .expect(200)
@@ -272,7 +272,7 @@ describe("/api", () => {
           });
         });
     });
-    it("** GET:200 responds with comments sorted by body", () => {
+    it("GET:200 responds with comments sorted by body", () => {
       return request(app)
         .get("/api/articles/9/comments?sort_by=body")
         .expect(200)
@@ -282,7 +282,7 @@ describe("/api", () => {
           });
         });
     });
-    it("** GET:200 responds with comments sorted by comment_id", () => {
+    it("GET:200 responds with comments sorted by comment_id", () => {
       return request(app)
         .get("/api/articles/9/comments?sort_by=comment_id")
         .expect(200)
@@ -292,7 +292,7 @@ describe("/api", () => {
           });
         });
     });
-    it("** GET:200 responds with comments sorted in ascending order", () => {
+    it("GET:200 responds with comments sorted in ascending order", () => {
       return request(app)
         .get("/api/articles/9/comments?order=asc")
         .expect(200)
@@ -302,7 +302,7 @@ describe("/api", () => {
           });
         });
     });
-    it("** GET:200 responds with comments sorted by votes in ascending order", () => {
+    it("GET:200 responds with comments sorted by votes in ascending order", () => {
       return request(app)
         .get("/api/articles/9/comments?sort_by=votes&order=asc")
         .expect(200)
@@ -310,6 +310,49 @@ describe("/api", () => {
           expect(response.body.comments).to.be.sortedBy("votes", {
             descending: false
           });
+        });
+    });
+    it("GET:400 when sort_by column is invalid", () => {
+      return request(app)
+        .get("/api/articles/9/comments?sort_by=invalidColumn")
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Invalid column name");
+        });
+    });
+    it("GET:400 when order option is invalid", () => {
+      return request(app)
+        .get("/api/articles/9/comments?order=invalidOption")
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Invalid order option");
+        });
+    });
+    it("GET:400 Bad Request on article_id which is invalid", () => {
+      return request(app)
+        .get("/api/articles/notAnArticleID/comments?sort_by=votes&order=asc")
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Invalid data type");
+        });
+    });
+    it("GET:404 Not Found on article_id which doesnt exist", () => {
+      return request(app)
+        .get("/api/articles/10000/comments?sort_by=votes&order=asc")
+        .expect(404)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Not Found: article_id does not exist"
+          );
+        });
+    });
+    it("GET:200 reponds with an empty array where the article_id exists, but has no comments", () => {
+      return request(app)
+        .get("/api/articles/2/comments?sort_by=votes&order=asc")
+        .expect(200)
+        .then(response => {
+          expect(response.body.comments).to.be.an("array");
+          expect(response.body.comments.length).to.equal(0);
         });
     });
   });

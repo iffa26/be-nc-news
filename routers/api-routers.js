@@ -27,4 +27,6 @@ apiRouter
   .post(updateCommentOnArticle)
   .get(sendCommentsByArticleId);
 
+// wildcard route??
+
 module.exports = apiRouter;
