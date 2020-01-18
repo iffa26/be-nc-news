@@ -20,12 +20,16 @@ exports.sendArticleById = (req, res, next) => {
 };
 
 exports.sendUpdatedArticle = (req, res, next) => {
-  //console.log("in sendUpdatedArticle controller function");
-  //console.log("req.params:", req.params, "req.body:", req.body);
+  // console.log("in sendUpdatedArticle controller function");
+  // console.log("req.params:", req.params, "req.body:", req.body);
 
   ammendArticleById(req.params, req.body)
     .then(article => {
-      res.status(200).send({ article });
+      if (req.body.inc_votes) {
+        res.status(201).send({ article });
+      } else {
+        res.status(200).send({ article });
+      }
     })
     .catch(function(err) {
       next(err);

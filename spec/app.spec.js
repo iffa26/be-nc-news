@@ -18,7 +18,20 @@ describe("/api", () => {
         .expect(200)
         .then(response => {
           expect(response.body.topics).to.be.an("array");
-          expect(response.body.topics[0]).to.have.keys("slug", "description");
+
+          const output = response.body.topics.every(topic => {
+            return topic.slug && topic.description;
+          });
+          expect(output).to.be.true;
+        });
+    });
+    it("PATCH, POST, PUT, DELETE: 405 Method not allowed", () => {
+      return request(app)
+        .patch("/api/topics")
+        .send({})
+        .expect(405)
+        .then(response => {
+          expect(response.body.msg).to.equal("Method not allowed");
         });
     });
   });
@@ -84,14 +97,80 @@ describe("/api", () => {
     });
   });
   describe("PATCH /articles/:article_id", () => {
-    it("PATCH:200 responds with the updated article object in an array", () => {
+    it("PATCH:201 Created responds with the updated article object, where inc_votes is > 0", () => {
       return request(app)
-        .patch("/api/articles/3")
+        .patch("/api/articles/2")
         .send({ inc_votes: 10 })
+        .expect(201)
+        .then(response => {
+          expect(response.body.article).to.be.an("object");
+          expect(response.body.article).to.contain.keys(
+            "author",
+            "title",
+            "article_id",
+            "body",
+            "topic",
+            "created_at",
+            "votes"
+          );
+          expect(response.body.article.votes).to.equal(10);
+        });
+    });
+    it("PATCH:201 Created responds with the updated article object, where inc_votes is < 0", () => {
+      return request(app)
+        .patch("/api/articles/2")
+        .send({ inc_votes: -10 })
+        .expect(201)
+        .then(response => {
+          expect(response.body.article).to.be.an("object");
+          expect(response.body.article).to.contain.keys(
+            "author",
+            "title",
+            "article_id",
+            "body",
+            "topic",
+            "created_at",
+            "votes"
+          );
+          expect(response.body.article.votes).to.equal(-10);
+        });
+    });
+    it("PATCH:200 responds with the unchanged article object when body is empty", () => {
+      return request(app)
+        .patch("/api/articles/2")
+        .send({})
         .expect(200)
         .then(response => {
           expect(response.body.article).to.be.an("object");
-          expect(response.body.article.votes).to.equal(10);
+          expect(response.body.article).to.contain.keys(
+            "author",
+            "title",
+            "article_id",
+            "body",
+            "topic",
+            "created_at",
+            "votes"
+          );
+          expect(response.body.article.votes).to.equal(0);
+        });
+    });
+    it("PATCH:200 responds with the unchanged article object when inc_votes is misspelt", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .send({ incVotes: 2 })
+        .expect(200)
+        .then(response => {
+          expect(response.body.article).to.be.an("object");
+          expect(response.body.article).to.contain.keys(
+            "author",
+            "title",
+            "article_id",
+            "body",
+            "topic",
+            "created_at",
+            "votes"
+          );
+          expect(response.body.article.votes).to.equal(100);
         });
     });
     it("PATCH:404 Not Found on article_id which does not exist", () => {
@@ -112,28 +191,6 @@ describe("/api", () => {
         .expect(400)
         .then(response => {
           expect(response.body.msg).to.equal("Bad Request: Invalid data type");
-        });
-    });
-    it("PATCH:400 Bad Request on missing inc_votes request field", () => {
-      return request(app)
-        .patch("/api/articles/2")
-        .send({})
-        .expect(400)
-        .then(response => {
-          expect(response.body.msg).to.equal(
-            "Bad Request: Missing request field"
-          );
-        });
-    });
-    it("PATCH:400 Bad Request on mispelt inc_votes request field", () => {
-      return request(app)
-        .patch("/api/articles/2")
-        .send({ incVotes: 2 })
-        .expect(400)
-        .then(response => {
-          expect(response.body.msg).to.equal(
-            "Bad Request: Missing request field"
-          );
         });
     });
     it("PATCH:400 Bad Request on invalid request type", () => {
@@ -228,7 +285,7 @@ describe("/api", () => {
     it("POST:400 Bad Request when article_id is invalid data type", () => {
       return request(app)
         .post("/api/articles/not_an_id/comments")
-        .send({ username: "iffa", body: "amazing" })
+        .send({ username: "rogersop", body: "amazing" })
         .expect(400)
         .then(response => {
           expect(response.body.msg).to.equal("Bad Request: Invalid data type");
@@ -242,13 +299,16 @@ describe("/api", () => {
         .expect(200)
         .then(response => {
           expect(response.body.comments).to.be.an("array");
-          expect(response.body.comments[0]).to.have.keys(
-            "comment_id",
-            "votes",
-            "created_at",
-            "author",
-            "body"
-          );
+          const output = response.body.comments.every(comment => {
+            return (
+              comment.comment_id &&
+              comment.votes &&
+              comment.created_at &&
+              comment.author &&
+              comment.body
+            );
+          });
+          expect(output).to.be.true;
         });
     });
     it("GET:200 responds with defualt sort criteria (by created_at in descending order)", () => {
@@ -366,7 +426,7 @@ describe("/api", () => {
     });
   });
   describe("GET /api/articles", () => {
-    it("GET:200 responds with an array of article objects", () => {
+    it("**GET:200 responds with an array of article objects", () => {
       return request(app)
         .get("/api/articles")
         .expect(200)
@@ -446,10 +506,11 @@ describe("/api", () => {
     });
     it("GET:200 reponds with an empty array when author is a valid user but doesnt have any articles", () => {
       return request(app)
-        .get("/api/articles/?author=lurker&topic=paper")
+        .get("/api/articles/?author=lurker")
         .expect(200)
         .then(response => {
           expect(response.body.articles).to.be.an("array");
+          expect(response.body.articles.length).to.equal(0);
         });
     });
     it("POST:404 Not Found when username does not exist (invalid)", () => {
@@ -463,6 +524,134 @@ describe("/api", () => {
         });
     });
   });
+  describe("PATCH /api/comments/:comment_id", () => {
+    it("PATCH:201 Created responds with the updated comment object, when inc_votes is > 0", () => {
+      return request(app)
+        .patch("/api/comments/14")
+        .send({ inc_votes: 1 })
+        .expect(201)
+        .then(response => {
+          expect(response.body.comment).to.be.an("object");
+          expect(response.body.comment).to.have.keys(
+            "comment_id",
+            "author",
+            "article_id",
+            "votes",
+            "created_at",
+            "body"
+          );
+          expect(response.body.comment.votes).to.equal(17);
+        });
+    });
+    it("PATCH:201 Created responds with the updated comment object, when inc_votes is < 0", () => {
+      return request(app)
+        .patch("/api/comments/14")
+        .send({ inc_votes: -1 })
+        .expect(201)
+        .then(response => {
+          expect(response.body.comment).to.be.an("object");
+          expect(response.body.comment).to.have.keys(
+            "comment_id",
+            "author",
+            "article_id",
+            "votes",
+            "created_at",
+            "body"
+          );
+          expect(response.body.comment.votes).to.equal(15);
+        });
+    });
+    it("PATCH:200 responds with the unchanged comment object when request body is empty", () => {
+      return request(app)
+        .patch("/api/comments/14")
+        .send({})
+        .expect(200)
+        .then(response => {
+          expect(response.body.comment).to.be.an("object");
+          expect(response.body.comment).to.contain.keys(
+            "comment_id",
+            "author",
+            "article_id",
+            "votes",
+            "created_at",
+            "body"
+          );
+          expect(response.body.comment.votes).to.equal(16);
+        });
+    });
+    it("PATCH:200 responds with the unchanged comment object when inc_votes is misspelt", () => {
+      return request(app)
+        .patch("/api/comments/14")
+        .send({ incVotes: 2 })
+        .expect(200)
+        .then(response => {
+          expect(response.body.comment).to.be.an("object");
+          expect(response.body.comment).to.contain.keys(
+            "comment_id",
+            "author",
+            "article_id",
+            "votes",
+            "created_at",
+            "body"
+          );
+          expect(response.body.comment.votes).to.equal(16);
+        });
+    });
+    it("PATCH:404 Not Found on comment_id which does not exist", () => {
+      return request(app)
+        .patch("/api/comments/10000")
+        .send({ inc_votes: 10 })
+        .expect(404)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Not Found: comment_id does not exist"
+          );
+        });
+    });
+    it("PATCH:400 Bad Request on invalid comment_id", () => {
+      return request(app)
+        .patch("/api/comments/notACommentID")
+        .send({ inc_votes: 10 })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Invalid data type");
+        });
+    });
+    it("PATCH:400 Bad Request on invalid request type", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ inc_votes: "invalidType" })
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Invalid data type");
+        });
+    });
+  });
+  describe("DELETE /api/comments/:comment_id", () => {
+    it("DELETE:204 responds with no content and deletes the given comment", () => {
+      return request(app)
+        .delete("/api/comments/1")
+        .expect(204);
+    });
+    it("DELETE:404 Not Found on comment_id which does not exist", () => {
+      return request(app)
+        .delete("/api/comments/10000")
+        .expect(404)
+        .then(response => {
+          expect(response.body.msg).to.equal(
+            "Not Found: comment_id does not exist"
+          );
+        });
+    });
+    it("DELETE:400 Bad Request on invalid comment_id", () => {
+      return request(app)
+        .delete("/api/comments/notACommentID")
+        .expect(400)
+        .then(response => {
+          expect(response.body.msg).to.equal("Bad Request: Invalid data type");
+        });
+    });
+  });
   describe("405 errors on all endpoints", () => {
     it("responds with a 405 on methods which aren't allowed", () => {
       return request(app)
@@ -473,4 +662,7 @@ describe("/api", () => {
         });
     });
   });
+  // describe("***GET /api", () => {
+  //   xit("GET:200 responds with a JSON describing all the available endpoints on your API", () => {});
+  // });
 });

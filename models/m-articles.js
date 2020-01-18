@@ -57,18 +57,12 @@ exports.selectArticleById = ({ article_id }) => {
 exports.ammendArticleById = ({ article_id }, { inc_votes }) => {
   //console.log("in the ammendArticleById function", inc_votes, article_id);
 
-  if (!inc_votes) {
-    return Promise.reject({
-      status: 400,
-      msg: "Bad Request: Missing request field"
-    });
-  }
-
   return connection("articles")
     .where("article_id", article_id)
-    .increment("votes", inc_votes)
+    .increment("votes", inc_votes || 0)
     .returning("*")
     .then(response => {
+      //console.log("controller", response);
       if (response.length === 0) {
         return Promise.reject({
           status: 404,
@@ -135,7 +129,6 @@ exports.selectCommentsByArticleId = (
       const checkArticleIdPromise = exports.checkIfArticleExistsById({
         article_id
       });
-
       return Promise.all([checkArticleIdPromise, formattedComments]);
     })
     .then(([checkArticleId, formattedComments]) => {

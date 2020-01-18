@@ -8,7 +8,10 @@ const {
   updateCommentOnArticle,
   sendCommentsByArticleId
 } = require("../controllers/c-articles.js");
-const {} = require("../controllers/c-comments.js");
+const {
+  updateCommentVotes,
+  removeCommentById
+} = require("../controllers/c-comments.js");
 const { sendTopics } = require("../controllers/c-topics.js");
 const { sendUserByUsername } = require("../controllers/c-users.js");
 
@@ -39,12 +42,10 @@ apiRouter
   .get(sendArticles)
   .all(send405Error);
 
-// wildcard route??
+apiRouter
+  .route("/comments/:comment_id")
+  .patch(updateCommentVotes)
+  .delete(removeCommentById)
+  .all(send405Error);
 
 module.exports = apiRouter;
-
-// to do:
-// user doesnt exist - test should fail
-// when response contsins a single object return a single object
-// when response is a list of objects return an array
-// 405 error handling with .all() in router
