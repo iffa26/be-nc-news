@@ -49,6 +49,9 @@ apiRouter
   .delete(removeCommentById)
   .all(send405Error);
 
-apiRouter.route("/").get(sendApiEndpoints);
+apiRouter
+  .route("/")
+  .get(sendApiEndpoints)
+  .all(send405Error);
 
 module.exports = apiRouter;
