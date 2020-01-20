@@ -26,7 +26,7 @@ exports.sendUpdatedArticle = (req, res, next) => {
   ammendArticleById(req.params, req.body)
     .then(article => {
       if (req.body.inc_votes) {
-        res.status(201).send({ article });
+        res.status(200).send({ article });
       } else {
         res.status(200).send({ article });
       }

@@ -11,7 +11,7 @@ exports.updateCommentVotes = (req, res, next) => {
   ammendVotesOnComment(req.params, req.body)
     .then(comment => {
       if (req.body.inc_votes) {
-        res.status(201).send({ comment });
+        res.status(200).send({ comment });
       } else {
         res.status(200).send({ comment });
       }

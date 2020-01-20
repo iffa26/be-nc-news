@@ -14,6 +14,7 @@ const {
 } = require("../controllers/c-comments.js");
 const { sendTopics } = require("../controllers/c-topics.js");
 const { sendUserByUsername } = require("../controllers/c-users.js");
+const { sendApiEndpoints } = require("../controllers/c-api.js");
 
 apiRouter
   .route("/topics")
@@ -47,5 +48,7 @@ apiRouter
   .patch(updateCommentVotes)
   .delete(removeCommentById)
   .all(send405Error);
+
+apiRouter.route("/").get(sendApiEndpoints);
 
 module.exports = apiRouter;

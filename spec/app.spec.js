@@ -7,6 +7,7 @@ chai.use(chaiSorted);
 const request = require("supertest");
 const app = require("../app");
 const connection = require("../db/connection.js");
+const endpoints = require("../endpoints.json");
 
 describe("/api", () => {
   beforeEach(() => connection.seed.run());
@@ -97,11 +98,11 @@ describe("/api", () => {
     });
   });
   describe("PATCH /articles/:article_id", () => {
-    it("PATCH:201 Created responds with the updated article object, where inc_votes is > 0", () => {
+    it("PATCH:200 responds with the updated article object, where inc_votes is > 0", () => {
       return request(app)
         .patch("/api/articles/2")
         .send({ inc_votes: 10 })
-        .expect(201)
+        .expect(200)
         .then(response => {
           expect(response.body.article).to.be.an("object");
           expect(response.body.article).to.contain.keys(
@@ -116,11 +117,11 @@ describe("/api", () => {
           expect(response.body.article.votes).to.equal(10);
         });
     });
-    it("PATCH:201 Created responds with the updated article object, where inc_votes is < 0", () => {
+    it("PATCH:200 responds with the updated article object, where inc_votes is < 0", () => {
       return request(app)
         .patch("/api/articles/2")
         .send({ inc_votes: -10 })
-        .expect(201)
+        .expect(200)
         .then(response => {
           expect(response.body.article).to.be.an("object");
           expect(response.body.article).to.contain.keys(
@@ -525,11 +526,11 @@ describe("/api", () => {
     });
   });
   describe("PATCH /api/comments/:comment_id", () => {
-    it("PATCH:201 Created responds with the updated comment object, when inc_votes is > 0", () => {
+    it("PATCH:200 Created responds with the updated comment object, when inc_votes is > 0", () => {
       return request(app)
         .patch("/api/comments/14")
         .send({ inc_votes: 1 })
-        .expect(201)
+        .expect(200)
         .then(response => {
           expect(response.body.comment).to.be.an("object");
           expect(response.body.comment).to.have.keys(
@@ -543,11 +544,11 @@ describe("/api", () => {
           expect(response.body.comment.votes).to.equal(17);
         });
     });
-    it("PATCH:201 Created responds with the updated comment object, when inc_votes is < 0", () => {
+    it("PATCH:200 Created responds with the updated comment object, when inc_votes is < 0", () => {
       return request(app)
         .patch("/api/comments/14")
         .send({ inc_votes: -1 })
-        .expect(201)
+        .expect(200)
         .then(response => {
           expect(response.body.comment).to.be.an("object");
           expect(response.body.comment).to.have.keys(
@@ -652,6 +653,16 @@ describe("/api", () => {
         });
     });
   });
+  describe("GET /api", () => {
+    it("GET:200 responds with a JSON describing all the available endpoints on the API", () => {
+      return request(app)
+        .get("/api")
+        .expect(200)
+        .then(response => {
+          expect(response.body).to.deep.equal(endpoints);
+        });
+    });
+  });
   describe("405 errors on all endpoints", () => {
     it("responds with a 405 on methods which aren't allowed", () => {
       return request(app)
@@ -662,7 +673,4 @@ describe("/api", () => {
         });
     });
   });
-  // describe("***GET /api", () => {
-  //   xit("GET:200 responds with a JSON describing all the available endpoints on your API", () => {});
-  // });
 });

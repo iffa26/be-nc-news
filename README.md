@@ -134,10 +134,7 @@ GET /api/articles/:article_id/comments
 
 GET /api/articles
 
-PATCH /api/comments/:comment_id
-DELETE /api/comments/:comment_id
 
-GET /api
 ```
 
 ---
