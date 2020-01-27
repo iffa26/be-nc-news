@@ -3,8 +3,7 @@ exports.formatDates = list => {
   Each item in the new array must have its timestamp converted into a Javascript date object. Everything else in each item must be maintained.
    */
 
-  const copyList = [...list];
-  const formatDates = copyList.map(obj => {
+  const formatDates = list.map(obj => {
     const copyObj = { ...obj };
     copyObj.created_at = new Date(copyObj.created_at);
     return copyObj;
@@ -42,8 +41,7 @@ exports.formatComments = (comments, articleRef) => {
 
   if (articleRef.length === 0) return [];
 
-  const copyComments = [...comments];
-  const formatedComments = copyComments.map(comment => {
+  const formatedComments = comments.map(comment => {
     const commentCopy = { ...comment };
     commentCopy.author = commentCopy.created_by;
     commentCopy.article_id = articleRef[commentCopy.belongs_to];

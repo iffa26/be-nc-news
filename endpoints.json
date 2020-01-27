@@ -23,5 +23,35 @@
         }
       ]
     }
+  },
+  "GET /api/articles/:article_id": {
+    "description": "",
+    "quieries": [],
+    "exampleResponse": {}
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "",
+    "quieries": [],
+    "exampleResponse": {}
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "",
+    "quieries": [],
+    "exampleResponse": {}
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "",
+    "quieries": [],
+    "exampleResponse": {}
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "",
+    "quieries": [],
+    "exampleResponse": {}
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "",
+    "quieries": [],
+    "exampleResponse": {}
   }
 }

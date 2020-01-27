@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "setup-dbs": "psql -f ./db/setup.sql",
-    "show-tables-dev": "psql -f ./db/show-tables.sql > ./db/show-tables-dev.txt",
     "show-tables-test": "psql -f ./db/show-tables-test.sql > ./db/show-tables-test.txt",
     "migrate-make": "knex migrate:make",
     "migrate-latest": "knex migrate:latest",
