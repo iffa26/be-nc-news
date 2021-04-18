@@ -32,13 +32,13 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "knex": "^0.20.7",
-    "pg": "^7.17.1"
+    "knex": "^0.95.4",
+    "pg": "^8.6.0"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
+    "chai": "^4.3.4",
     "chai-sorted": "^0.2.0",
-    "mocha": "^7.0.0",
-    "supertest": "^4.0.2"
+    "mocha": "^8.3.2",
+    "supertest": "^6.1.3"
   }
 }
