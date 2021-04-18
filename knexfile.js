@@ -21,10 +21,13 @@ const customConfig = {
     }
   },
   production: {
-    connectionString: `${DB_URL}`, 
-    ssl: {
-          rejectUnauthorized: false,
-        },
+    connection: {
+
+      connectionString: DB_URL, 
+      ssl: {
+            rejectUnauthorized: false,
+          },
+        }
   },
   test: {
     connection: {
